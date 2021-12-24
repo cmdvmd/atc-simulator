@@ -18,7 +18,14 @@ FPS = 60
 SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 600
 
+CLOCK = pygame.time.Clock()
 WINDOW = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+
+data = {
+    assets.BALANCE: 5000000,
+    assets.TERMINAL_SIZE: 150,
+    assets.RUNWAYS: []
+}
 
 # Start game
 if __name__ == '__main__':
