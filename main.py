@@ -24,7 +24,9 @@ WINDOW = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 data = {
     assets.BALANCE: 5000000,
     assets.TERMINAL_SIZE: 150,
-    assets.RUNWAYS: []
+    assets.RUNWAYS: [],
+    assets.AIRPLANES: [],
+    assets.TIMEOUT: 30000
 }
 
 # Start game
