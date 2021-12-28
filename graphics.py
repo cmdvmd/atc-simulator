@@ -60,16 +60,16 @@ class Runway:
 
     def collide_end(self, x, y):
         if self.width >= self.height and self.y <= y <= self.y + self.runway_width:
-            if self.x <= x <= self.x + 50:
+            if self.x <= x <= self.x + self.runway_width:
                 return self, 0
-            elif self.x + self.width - 50 <= x <= self.x + self.width:
+            elif self.x + self.width - self.runway_width <= x <= self.x + self.width:
                 return self, 180
             else:
                 return None, -1
-        elif self.x <= x <= self.x + self.runway_width:
-            if self.y <= y <= self.y + 50:
+        elif self.height > self.width and self.x <= x <= self.x + self.runway_width:
+            if self.y <= y <= self.y + self.runway_width:
                 return self, 270
-            elif self.y + self.height - 50 <= y <= self.y + self.height:
+            elif self.y + self.height - self.runway_width <= y <= self.y + self.height:
                 return self, 90
             else:
                 return None, -1
@@ -126,7 +126,7 @@ class Airplane:
         self.normal_size = 50
         self.grounded_size = 30
         self.path = []
-        self.last_movement = pygame.time.get_ticks()
+        self.last_movement = main.get_ticks()
         self.color = []
         self.grounded = False
         self.clicked = False
@@ -176,7 +176,7 @@ class Airplane:
         :param surface: Surface to draw graphic onto
         """
 
-        time = pygame.time.get_ticks()
+        time = main.get_ticks()
 
         if self.path or (self.runway is None and not self.parked):
             if len(self.path) >= 2:
@@ -230,6 +230,8 @@ class Airplane:
                     self.grounded = False
                     self.ready = False
                     self.size_based_stats()
+                    main.data[assets.AIRPLANES].remove(self)
+                    main.data[assets.AIRPLANES].append(self)
 
             if self.gate_number is not None:
                 if self.at_gate is None:
@@ -249,9 +251,10 @@ class Airplane:
             self.y = self.gate_y
             self.angle = math.radians(self.gate_angle)
 
-        image = pygame.transform.rotate(pygame.transform.scale(self.image, (
-            self.grounded_size, self.grounded_size) if self.grounded else (self.normal_size, self.normal_size)),
-                                        math.degrees(self.angle) - 90)
+        image = pygame.transform.rotate(
+            pygame.transform.scale(pygame.image.fromstring(self.image, assets.PLANE_SIZE, 'RGBA'),
+                                   (self.grounded_size, self.grounded_size) if self.grounded else (
+                                   self.normal_size, self.normal_size)), math.degrees(self.angle) - 90)
         mask = pygame.Surface(image.get_size()).convert_alpha()
         mask.fill(self.color)
 

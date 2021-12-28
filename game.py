@@ -213,7 +213,7 @@ def draw_runways():
             image = assets.SMALL_PLANE
 
         if image is not None:
-            image = pygame.transform.scale(image, (40, 40))
+            image = pygame.transform.scale(pygame.image.fromstring(image, assets.PLANE_SIZE, 'RGBA'), (40, 40))
             main.WINDOW.blit(image, (runway.x, runway.y - price_text_rect.height - image.get_rect().height))
 
 
@@ -320,12 +320,14 @@ def game():
                     not clicked_airplane.path or clicked_airplane.path[-1] != mouse_pos):
                 clicked_airplane.path.append(mouse_pos)
             elif event.type == assets.SPEED_GENERATION:
-                main.data[assets.TIMEOUT] = (main.data[assets.TIMEOUT] - 2000) if main.data[assets.TIMEOUT] >= 2000 else 0
+                main.data[assets.TIMEOUT] = (main.data[assets.TIMEOUT] - 2000) if main.data[
+                                                                                      assets.TIMEOUT] >= 2000 else 0
                 pygame.time.set_timer(assets.GENERATE_AIRPLANE, 0)
                 pygame.time.set_timer(assets.GENERATE_AIRPLANE, main.data[assets.TIMEOUT])
             elif event.type == assets.GENERATE_AIRPLANE:
                 graphics.Airplane.generate_airplane()
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                main.save_game()
                 pygame.mouse.set_cursor(*pygame.cursors.arrow)
                 pygame.time.set_timer(assets.GENERATE_AIRPLANE, 0)
                 run = False

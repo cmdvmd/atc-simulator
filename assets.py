@@ -7,9 +7,10 @@ import os
 
 ICON = pygame.transform.scale(pygame.image.load(os.path.join('assets', 'icon.png')), (32, 32))
 MENU_IMAGE = pygame.image.load(os.path.join('assets', 'menu_image.png'))
-SMALL_PLANE = pygame.image.load(os.path.join('assets', 'small_plane.png'))
-MEDIUM_PLANE = pygame.image.load(os.path.join('assets', 'medium_plane.png'))
-LARGE_PLANE = pygame.image.load(os.path.join('assets', 'large_plane.png'))
+SMALL_PLANE = pygame.image.tostring(pygame.image.load(os.path.join('assets', 'small_plane.png')), 'RGBA')
+MEDIUM_PLANE = pygame.image.tostring(pygame.image.load(os.path.join('assets', 'medium_plane.png')), 'RGBA')
+LARGE_PLANE = pygame.image.tostring(pygame.image.load(os.path.join('assets', 'large_plane.png')), 'RGBA')
+PLANE_SIZE = 100, 100
 
 #
 # Colors
@@ -73,3 +74,5 @@ TERMINAL_SIZE = 'terminal size'
 RUNWAYS = 'runways'
 AIRPLANES = 'airplanes'
 TIMEOUT = 'timeout'
+TICKS = 'ticks'
+SAVE_FILE = 'savefile'

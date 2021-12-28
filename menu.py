@@ -1,8 +1,30 @@
 import pygame
+import pickle
 import assets
 import main
 import graphics
 import game
+
+
+def load_game():
+    try:
+        with open(assets.SAVE_FILE, 'rb') as file:
+            main.data = pickle.load(file)
+        game.game()
+    except (FileNotFoundError, pickle.UnpicklingError):
+        return
+
+
+def new_game():
+    main.data = {
+        assets.BALANCE: 5000000,
+        assets.TERMINAL_SIZE: 150,
+        assets.RUNWAYS: [],
+        assets.AIRPLANES: [],
+        assets.TIMEOUT: 30000,
+        assets.TICKS: pygame.time.get_ticks()
+    }
+    game.game()
 
 
 def menu():
@@ -35,8 +57,11 @@ def menu():
         new_game_text = assets.INFO_FONT.render('New Game', True, assets.INFO_TEXT_COLOR)
         main.WINDOW.blit(new_game_text, (160, 415))
 
+        if load_game_button.clicked:
+            load_game()
+            load_game_button.clicked = False
         if new_game_button.clicked:
-            game.game()
+            new_game()
             new_game_button.clicked = False
 
         # Run event loop
