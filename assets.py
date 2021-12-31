@@ -11,6 +11,14 @@ SMALL_PLANE = pygame.image.tostring(pygame.image.load(os.path.join('assets', 'sm
 MEDIUM_PLANE = pygame.image.tostring(pygame.image.load(os.path.join('assets', 'medium_plane.png')), 'RGBA')
 LARGE_PLANE = pygame.image.tostring(pygame.image.load(os.path.join('assets', 'large_plane.png')), 'RGBA')
 PLANE_SIZE = 100, 100
+NEXT_ARROW = pygame.image.load(os.path.join('assets', 'next_arrow.png'))
+BACK_ARROW = pygame.image.load(os.path.join('assets', 'back_arrow.png'))
+DRAW_RUNWAY_BUTTON = pygame.transform.scale(pygame.image.load(os.path.join('assets', 'draw_runway_button.png')), (75, 75))
+DRAWING_RUNWAY = pygame.transform.scale(pygame.image.load(os.path.join('assets', 'drawing_runway.png')), (175, 75))
+AIRPLANE_RUNWAY = pygame.transform.scale(pygame.image.load(os.path.join('assets', 'runway.png')), (175, 75))
+AIRPLANE_PATH = pygame.transform.scale(pygame.image.load(os.path.join('assets', 'path.png')), (175, 75))
+AIRPLANE_ALTITUDES = pygame.transform.scale(pygame.image.load(os.path.join('assets', 'altitudes.png')), (75, 75))
+AIRPLANE_GATE = pygame.transform.scale(pygame.image.load(os.path.join('assets', 'gate.png')), (75, 75))
 
 #
 # Colors
@@ -21,6 +29,9 @@ MENU_TITLE_COLOR = 255, 255, 255
 MENU_BUTTON_COLOR = 0, 55, 165
 MENU_BUTTON_COLOR_OVER = 30, 90, 215
 MENU_BUTTON_COLOR_DOWN = 95, 135, 220
+TRANSPARENT_BUTTON_COLOR = 0, 0, 0, 0
+TRANSPARENT_BUTTON_COLOR_OVER = 255, 255, 255, 25
+TRANSPARENT_BUTTON_COLOR_DOWN = 255, 255, 255, 75
 GRASS_COLOR = 0, 200, 0
 ROAD_COLOR = 200, 195, 190
 TERMINAL_COLOR = 100, 100, 100
@@ -75,4 +86,7 @@ RUNWAYS = 'runways'
 AIRPLANES = 'airplanes'
 TIMEOUT = 'timeout'
 TICKS = 'ticks'
+HIGH_SCORE = 'high score'
+
+DATA_KEYS = [BALANCE, TERMINAL_SIZE, RUNWAYS, AIRPLANES, TIMEOUT, TICKS, HIGH_SCORE]
 SAVE_FILE = 'savefile'

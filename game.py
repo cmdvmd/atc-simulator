@@ -201,8 +201,7 @@ def draw_runways():
         price_text = assets.INFO_FONT.render(f'${runway.price:,}', True,
                                              assets.INFO_ERROR_COLOR if runway.price > main.data[
                                                  assets.BALANCE] else assets.INFO_TEXT_COLOR)
-        price_text_rect = price_text.get_rect()
-        main.WINDOW.blit(price_text, (runway.x, runway.y - price_text_rect.height))
+        main.WINDOW.blit(price_text, (runway.x, runway.y - price_text.get_height()))
 
         image = None
         if runway.area >= assets.LARGE_PLANE_RUNWAY:
@@ -214,7 +213,7 @@ def draw_runways():
 
         if image is not None:
             image = pygame.transform.scale(pygame.image.fromstring(image, assets.PLANE_SIZE, 'RGBA'), (40, 40))
-            main.WINDOW.blit(image, (runway.x, runway.y - price_text_rect.height - image.get_rect().height))
+            main.WINDOW.blit(image, (runway.x, runway.y - price_text.get_height() - image.get_height()))
 
 
 def draw_airplanes():
@@ -270,15 +269,17 @@ def game():
         draw_airplanes()
         draw_controls()
 
-        balance_text = assets.INFO_FONT.render(f'${main.data[assets.BALANCE]:,}', True, assets.INFO_TEXT_COLOR)
-        balance_rect = balance_text.get_rect()
-        main.WINDOW.blit(balance_text, (main.SCREEN_WIDTH - balance_rect.width - 10, 10))
+        balance_text = assets.INFO_FONT.render(
+            ('- ' if main.data[assets.BALANCE] < 0 else '') + f'${abs(main.data[assets.BALANCE]):,}', True,
+            assets.INFO_TEXT_COLOR if main.data[assets.BALANCE] >= 0 else assets.INFO_ERROR_COLOR)
+        main.WINDOW.blit(balance_text, (main.SCREEN_WIDTH - balance_text.get_width() - 10, 10))
 
         # Run event loop
         for event in pygame.event.get():
             mouse_pos = pygame.mouse.get_pos()
 
             if event.type == pygame.QUIT:
+                run = False
                 main.close()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == pygame.BUTTON_LEFT and not drawing_runway:
@@ -303,6 +304,7 @@ def game():
                                 main.data[assets.BALANCE] += runway.price
                     elif clicked_airplane is not None:
                         clicked_airplane.path.clear()
+                        clicked_airplane.parked = False
                         unclick_airplane()
                 elif drawing_runway:
                     original_click = mouse_pos

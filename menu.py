@@ -3,26 +3,37 @@ import pickle
 import assets
 import main
 import graphics
+import instructions
 import game
 
 
 def load_game():
+    """
+    Load game data from savefile
+    """
+
     try:
         with open(assets.SAVE_FILE, 'rb') as file:
             main.data = pickle.load(file)
-        game.game()
-    except (FileNotFoundError, pickle.UnpicklingError):
+        assert list(main.data.keys()) == assets.DATA_KEYS
+    except (FileNotFoundError, AssertionError, pickle.UnpicklingError):
         return
 
 
 def new_game():
+    """
+    Reset game data
+    """
+
+    load_game()
     main.data = {
         assets.BALANCE: 5000000,
         assets.TERMINAL_SIZE: 150,
         assets.RUNWAYS: [],
         assets.AIRPLANES: [],
         assets.TIMEOUT: 30000,
-        assets.TICKS: pygame.time.get_ticks()
+        assets.TICKS: pygame.time.get_ticks(),
+        assets.HIGH_SCORE: main.data[assets.HIGH_SCORE] if assets.HIGH_SCORE in main.data else 0
     }
     game.game()
 
@@ -41,24 +52,28 @@ def menu():
         main.WINDOW.fill(assets.MENU_COLOR)
 
         title = assets.TITLE_FONT.render('Air Traffic Controller Simulator', True, assets.MENU_TITLE_COLOR)
-        main.WINDOW.blit(title, (75, 10))
+        main.WINDOW.blit(title, ((main.SCREEN_WIDTH / 2) - (title.get_width() / 2), 10))
         main.WINDOW.blit(assets.MENU_IMAGE, (550, 75))
 
         # Draw buttons
-        rules_button.draw(main.WINDOW)
-        rules_text = assets.INFO_FONT.render('Rules', True, assets.INFO_TEXT_COLOR)
-        main.WINDOW.blit(rules_text, (180, 215))
+        instructions_button.draw(main.WINDOW)
+        instructions_text = assets.INFO_FONT.render('Instructions', True, assets.INFO_TEXT_COLOR)
+        main.WINDOW.blit(instructions_text, (instructions_button.x + (button_width / 2) - (instructions_text.get_width() / 2), 215))
 
         load_game_button.draw(main.WINDOW)
         load_game_text = assets.INFO_FONT.render('Load Game', True, assets.INFO_TEXT_COLOR)
-        main.WINDOW.blit(load_game_text, (160, 315))
+        main.WINDOW.blit(load_game_text, (load_game_button.x + (button_width / 2) - (load_game_text.get_width() / 2), 315))
 
         new_game_button.draw(main.WINDOW)
         new_game_text = assets.INFO_FONT.render('New Game', True, assets.INFO_TEXT_COLOR)
-        main.WINDOW.blit(new_game_text, (160, 415))
+        main.WINDOW.blit(new_game_text, (new_game_button.x + (button_width / 2) - (new_game_text.get_width() / 2), 415))
 
+        if instructions_button.clicked:
+            instructions.instructions()
+            instructions_button.clicked = False
         if load_game_button.clicked:
             load_game()
+            game.game()
             load_game_button.clicked = False
         if new_game_button.clicked:
             new_game()
@@ -67,6 +82,7 @@ def menu():
         # Run event loop
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                run = False
                 main.close()
 
         pygame.display.flip()
@@ -78,7 +94,7 @@ button_height = 50
 button_curve = 10
 button_x = 100
 
-rules_button = graphics.Button(
+instructions_button = graphics.Button(
     button_x,
     200,
     button_width,

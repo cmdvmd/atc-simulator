@@ -6,6 +6,10 @@ import menu
 
 
 def get_ticks():
+    """
+    Get time (in milliseconds) elapsed since start of game
+    """
+
     return pygame.time.get_ticks() + data[assets.TICKS]
 
 
@@ -14,9 +18,10 @@ def save_game():
     Save game data
     """
 
-    data[assets.TICKS] = get_ticks()
-    with open(assets.SAVE_FILE, 'wb') as file:
-        pickle.dump(data, file)
+    if data:
+        data[assets.TICKS] = get_ticks()
+        with open(assets.SAVE_FILE, 'wb') as file:
+            pickle.dump(data, file)
 
 
 def close():
