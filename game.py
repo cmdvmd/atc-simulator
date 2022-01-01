@@ -1,7 +1,69 @@
 import pygame
+import time
+import datetime
 import main
 import graphics
 import assets
+
+
+def draw_popup():
+    """
+    Draw popup at the end of the game
+    """
+
+    global run
+    global collision
+
+    popup = pygame.Surface((main.SCREEN_WIDTH / 2, main.SCREEN_HEIGHT / 2), pygame.SRCALPHA)
+    popup_center_x = popup.get_width() / 2
+    popup_pos = main.SCREEN_CENTER[0] - popup_center_x, main.SCREEN_CENTER[1] - (popup.get_height() / 2)
+    popup.fill(assets.POPUP_COLOR)
+
+    title = assets.TITLE_FONT.render('Game Over!', True, assets.MENU_TITLE_COLOR)
+    title_y = 10
+
+    score = assets.POPUP_FONT.render(f'Score: {main.data[assets.SCORE]}', True, assets.INFO_TEXT_COLOR)
+    score_y = title_y + title.get_height() + 10
+
+    high_score = assets.POPUP_FONT.render(
+        f'High Score: {max(main.data[assets.HIGH_SCORE], main.data[assets.SCORE])}' + (
+            ' (New)' if main.data[assets.SCORE] > main.data[assets.HIGH_SCORE] else ''), True, assets.INFO_TEXT_COLOR)
+    high_score_y = score_y + score.get_height() + 10
+
+    game_time = assets.POPUP_FONT.render(
+        f'Game Time: {datetime.timedelta(seconds=main.data[assets.GAME_TIME] // 1000)}', True, assets.INFO_TEXT_COLOR)
+    game_time_y = high_score_y + high_score.get_height() + 10
+
+    close_button_width = 100
+    close_button_height = 35
+    close_button = graphics.Button(
+        popup_center_x - (close_button_width / 2),
+        popup.get_height() - close_button_height - 10,
+        close_button_width,
+        close_button_height,
+        assets.MENU_BUTTON_COLOR,
+        assets.MENU_BUTTON_COLOR_OVER,
+        assets.MENU_BUTTON_COLOR_DOWN,
+        10
+    )
+
+    close_text = assets.BUTTON_FONT.render('Close', True, assets.INFO_TEXT_COLOR)
+
+    popup.blit(title, ((popup_center_x - title.get_width() / 2), title_y))
+    popup.blit(score, ((popup_center_x - score.get_width() / 2), score_y))
+    popup.blit(high_score, ((popup_center_x - high_score.get_width() / 2), high_score_y))
+    popup.blit(game_time, ((popup_center_x - game_time.get_width() / 2), game_time_y))
+
+    close_button.draw(popup, popup_pos)
+    popup.blit(close_text, (close_button.x + (close_button.width / 2) - (close_text.get_width() / 2),
+                            close_button.y + (close_button.height / 2) - (close_text.get_height() / 2)))
+
+    if close_button.clicked:
+        main.save_game()
+        run = False
+        collision = False
+
+    main.WINDOW.blit(popup, popup_pos)
 
 
 def draw_controls():
@@ -10,6 +72,7 @@ def draw_controls():
     """
 
     global drawing_runway
+    global hitboxes
     global pressed
 
     # Define buttons
@@ -17,10 +80,37 @@ def draw_controls():
     button_curve = 10
     button_y = main.SCREEN_HEIGHT - button_size - 10
 
-    # Draw runway button
     draw_runway_x = 10
+    draw_runway_center_x = draw_runway_x + (button_size / 2)
     draw_runway_button = graphics.Button(
         draw_runway_x,
+        button_y,
+        button_size,
+        button_size,
+        assets.BUTTON_COLOR,
+        assets.BUTTON_COLOR_OVER,
+        assets.BUTTON_COLOR_DOWN,
+        button_curve
+    )
+
+    expand_terminal_x = draw_runway_x + button_size + 10
+    expand_terminal_center_x = expand_terminal_x + (button_size / 2)
+    expand_terminal_button = graphics.Button(
+        expand_terminal_x,
+        button_y,
+        button_size,
+        button_size,
+        assets.BUTTON_COLOR,
+        assets.BUTTON_COLOR_OVER,
+        assets.BUTTON_COLOR_DOWN,
+        button_curve
+    )
+
+    hitbox_button_x = expand_terminal_x + button_size + 10
+    hitbox_center_x = hitbox_button_x + (button_size / 2)
+    hitbox_center_y = button_y + (button_size / 2)
+    hitbox_button = graphics.Button(
+        hitbox_button_x,
         button_y,
         button_size,
         button_size,
@@ -34,33 +124,20 @@ def draw_controls():
     if draw_runway_button.clicked and not pressed:
         drawing_runway = not drawing_runway
         pygame.mouse.set_cursor(*(pygame.cursors.broken_x if drawing_runway else pygame.cursors.arrow))
-        pressed = True
 
     if not drawing_runway:
-        top_text_y = button_y + 5
-        bottom_text_y = button_y + 25
-        price_text_y = button_y + 45
+        top_text_y = button_y + 7
+        bottom_text_y = button_y + (button_size / 2) - (assets.BUTTON_FONT.get_height() / 2)
+        price_text_y = button_y + button_size - assets.BUTTON_FONT.get_height() - 7
 
         # Draw runway button
         draw_text = assets.BUTTON_FONT.render('Draw', True, assets.INFO_TEXT_COLOR)
         runway_text = assets.BUTTON_FONT.render('Runway', True, assets.INFO_TEXT_COLOR)
         runway_price_text = assets.BUTTON_FONT.render(f'(${assets.RUNWAY_PRICE:,}/sq. ft)', True,
                                                       assets.INFO_TEXT_COLOR)
-        main.WINDOW.blit(draw_text, (32, top_text_y))
-        main.WINDOW.blit(runway_text, (25, bottom_text_y))
-        main.WINDOW.blit(runway_price_text, (17, price_text_y))
-
-        expand_terminal_x = (draw_runway_x * 2) + button_size
-        expand_terminal_button = graphics.Button(
-            expand_terminal_x,
-            button_y,
-            button_size,
-            button_size,
-            assets.BUTTON_COLOR,
-            assets.BUTTON_COLOR_OVER,
-            assets.BUTTON_COLOR_DOWN,
-            button_curve
-        )
+        main.WINDOW.blit(draw_text, (draw_runway_center_x - (draw_text.get_width() / 2), top_text_y))
+        main.WINDOW.blit(runway_text, (draw_runway_center_x - (runway_text.get_width() / 2), bottom_text_y))
+        main.WINDOW.blit(runway_price_text, (draw_runway_center_x - (runway_price_text.get_width() / 2), price_text_y))
 
         # Draw expand terminal button
         expand_terminal_button.draw(main.WINDOW)
@@ -68,19 +145,35 @@ def draw_controls():
         expand_text = assets.BUTTON_FONT.render('Expand', True, assets.INFO_TEXT_COLOR)
         terminal_text = assets.BUTTON_FONT.render('Terminal', True, assets.INFO_TEXT_COLOR)
         terminal_price_text = assets.BUTTON_FONT.render(f'(${assets.TERMINAL_PRICE:,})', True, assets.INFO_TEXT_COLOR)
-        main.WINDOW.blit(expand_text, (110, top_text_y))
-        main.WINDOW.blit(terminal_text, (108, bottom_text_y))
-        main.WINDOW.blit(terminal_price_text, (102, price_text_y))
+        main.WINDOW.blit(expand_text, (expand_terminal_center_x - (expand_text.get_width() / 2), top_text_y))
+        main.WINDOW.blit(terminal_text, (expand_terminal_center_x - (terminal_text.get_width() / 2), bottom_text_y))
+        main.WINDOW.blit(terminal_price_text,
+                         (expand_terminal_center_x - (terminal_price_text.get_width() / 2), price_text_y))
+
+        # Draw show/hide hit boxes button
+        hitbox_button.draw(main.WINDOW)
+
+        status_text = assets.BUTTON_FONT.render('Hide' if hitboxes else 'Show', True, assets.INFO_TEXT_COLOR)
+        hit_box_text = assets.BUTTON_FONT.render('Hitboxes', True, assets.INFO_TEXT_COLOR)
+
+        main.WINDOW.blit(status_text,
+                         (hitbox_center_x - (status_text.get_width() / 2), hitbox_center_y - status_text.get_height()))
+        main.WINDOW.blit(hit_box_text, (hitbox_center_x - (hit_box_text.get_width() / 2), hitbox_center_y))
 
         if expand_terminal_button.clicked and main.data[assets.TERMINAL_SIZE] <= 500 and main.data[
             assets.BALANCE] >= assets.TERMINAL_PRICE and not pressed:
             main.data[assets.BALANCE] -= assets.TERMINAL_PRICE
             main.data[assets.TERMINAL_SIZE] += 50
-            pressed = True
+
+        if hitbox_button.clicked and not pressed:
+            hitboxes = not hitboxes
     else:
         # Draw exit runway button
-        exit_button = assets.INFO_FONT.render('Exit', True, assets.INFO_TEXT_COLOR)
-        main.WINDOW.blit(exit_button, (33, button_y + 25))
+        exit_text = assets.INFO_FONT.render('Exit', True, assets.INFO_TEXT_COLOR)
+        main.WINDOW.blit(exit_text, (draw_runway_center_x - (exit_text.get_width() / 2),
+                                     button_y + (button_size / 2) - (exit_text.get_height() / 2)))
+
+    pressed = draw_runway_button.clicked or expand_terminal_button.clicked or hitbox_button.clicked
 
 
 def draw_airport():
@@ -94,8 +187,8 @@ def draw_airport():
     apron_curve = 10
 
     pygame.draw.rect(main.WINDOW, assets.ROAD_COLOR, pygame.Rect(
-        (main.SCREEN_WIDTH / 2) - (apron_width / 2),
-        (main.SCREEN_HEIGHT / 2) - (apron_height / 2),
+        main.SCREEN_CENTER[0] - (apron_width / 2),
+        main.SCREEN_CENTER[1] - (apron_height / 2),
         apron_width,
         apron_height
     ), border_radius=apron_curve)
@@ -103,8 +196,8 @@ def draw_airport():
     # Draw terminal
     terminal_width = main.data[assets.TERMINAL_SIZE]
     terminal_height = 75
-    terminal_x = (main.SCREEN_WIDTH / 2) - (terminal_width / 2)
-    terminal_y = (main.SCREEN_HEIGHT / 2) - (terminal_height / 2)
+    terminal_x = main.SCREEN_CENTER[0] - (terminal_width / 2)
+    terminal_y = main.SCREEN_CENTER[1] - (terminal_height / 2)
     terminal_curve = 10
 
     pygame.draw.rect(main.WINDOW, assets.TERMINAL_COLOR, pygame.Rect(
@@ -185,12 +278,12 @@ def draw_runways():
     mouse_pos = pygame.mouse.get_pos()
     for runway in main.data[assets.RUNWAYS]:
         runway.draw(main.WINDOW)
-        collision = runway.collide_end(*mouse_pos)
-        if clicked_airplane is not None and collision[1] != -1 and (
+        result = runway.collide_end(*mouse_pos)
+        if clicked_airplane is not None and result[1] != -1 and (
                 not clicked_airplane.grounded or clicked_airplane.at_gate is not None):
-            if collision[0].area >= clicked_airplane.runway_size:
-                clicked_airplane.runway = collision[0]
-                clicked_airplane.runway_angle = collision[1]
+            if result[0].area >= clicked_airplane.runway_size:
+                clicked_airplane.runway = result[0]
+                clicked_airplane.runway_angle = result[1]
             else:
                 clicked_airplane.path.clear()
             unclick_airplane()
@@ -221,15 +314,18 @@ def draw_airplanes():
     Draw airplane graphics on screen
     """
 
+    global collision
+
     for airplane in main.data[assets.AIRPLANES]:
+        airplane.draw(main.WINDOW)
         for other in main.data[assets.AIRPLANES]:
-            if other != airplane and airplane.grounded == other.grounded and airplane.get_rect().colliderect(
+            if not collision and other != airplane and airplane.grounded == other.grounded and airplane.get_rect().colliderect(
                     other.get_rect()):
+                collision = True
+                main.data[assets.GAME_TIME] = main.get_time()
                 airplane.color = assets.INFO_ERROR_COLOR
                 other.color = assets.INFO_ERROR_COLOR
                 other.draw(main.WINDOW)
-
-        airplane.draw(main.WINDOW)
 
 
 def unclick_airplane():
@@ -249,15 +345,18 @@ def game():
     Run game loop
     """
 
+    global run
     global pressed
     global original_click
     global drawing_runway
     global clicked_airplane
 
     run = True
+    main.game_start_time = time.time_ns()
 
-    # Speed up plane generation
-    pygame.time.set_timer(assets.GENERATE_AIRPLANE, 30000)
+    # Configure plane generation
+    pygame.time.set_timer(assets.GENERATE_AIRPLANE, main.data[assets.TIMEOUT])
+    pygame.time.set_timer(assets.SPEED_GENERATION, 30000)
 
     while run:
         main.CLOCK.tick(main.FPS)
@@ -268,6 +367,8 @@ def game():
         draw_runways()
         draw_airplanes()
         draw_controls()
+        if collision:
+            draw_popup()
 
         balance_text = assets.INFO_FONT.render(
             ('- ' if main.data[assets.BALANCE] < 0 else '') + f'${abs(main.data[assets.BALANCE]):,}', True,
@@ -286,6 +387,7 @@ def game():
                     for airplane in main.data[assets.AIRPLANES]:
                         if airplane.get_rect().collidepoint(mouse_pos) and airplane.ready and (
                                 airplane.path or (airplane.runway is None and not airplane.parked)):
+                            airplane.clicked = True
                             airplane.clicked = True
                             airplane.path.clear()
                             airplane.runway = None
@@ -331,14 +433,19 @@ def game():
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 main.save_game()
                 pygame.mouse.set_cursor(*pygame.cursors.arrow)
+                pygame.time.set_timer(assets.SPEED_GENERATION, 0)
                 pygame.time.set_timer(assets.GENERATE_AIRPLANE, 0)
                 run = False
 
         pygame.display.flip()
 
 
+# Define variables
+run = False
 drawing_runway = False
+hitboxes = False
 pressed = False
 original_click = None
 clicked_airplane = None
+collision = False
 gates = {}

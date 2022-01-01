@@ -1,16 +1,17 @@
 import pygame
+import time
 import pickle
 import sys
 import assets
 import menu
 
 
-def get_ticks():
+def get_time():
     """
     Get time (in milliseconds) elapsed since start of game
     """
 
-    return pygame.time.get_ticks() + data[assets.TICKS]
+    return (time.time_ns() / 1000000) - (game_start_time / 1000000) + data[assets.GAME_TIME]
 
 
 def save_game():
@@ -19,7 +20,8 @@ def save_game():
     """
 
     if data:
-        data[assets.TICKS] = get_ticks()
+        data[assets.GAME_TIME] = get_time()
+        data[assets.HIGH_SCORE] = max(data[assets.HIGH_SCORE], data[assets.SCORE])
         with open(assets.SAVE_FILE, 'wb') as file:
             pickle.dump(data, file)
 
@@ -38,11 +40,14 @@ def close():
 FPS = 60
 SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 600
+SCREEN_CENTER = SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2
 
 CLOCK = pygame.time.Clock()
 WINDOW = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 data = {}
+
+game_start_time = 0
 
 # Start game
 if __name__ == '__main__':

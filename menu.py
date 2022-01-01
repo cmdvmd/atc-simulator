@@ -7,7 +7,7 @@ import instructions
 import game
 
 
-def load_game():
+def load_game(start=True):
     """
     Load game data from savefile
     """
@@ -18,6 +18,9 @@ def load_game():
         assert list(main.data.keys()) == assets.DATA_KEYS
     except (FileNotFoundError, AssertionError, pickle.UnpicklingError):
         return
+    else:
+        if start:
+            game.game()
 
 
 def new_game():
@@ -25,14 +28,15 @@ def new_game():
     Reset game data
     """
 
-    load_game()
+    load_game(False)
     main.data = {
         assets.BALANCE: 5000000,
         assets.TERMINAL_SIZE: 150,
         assets.RUNWAYS: [],
         assets.AIRPLANES: [],
-        assets.TIMEOUT: 30000,
-        assets.TICKS: pygame.time.get_ticks(),
+        assets.TIMEOUT: 32000,
+        assets.GAME_TIME: 0,
+        assets.SCORE: 0,
         assets.HIGH_SCORE: main.data[assets.HIGH_SCORE] if assets.HIGH_SCORE in main.data else 0
     }
     game.game()
@@ -73,7 +77,6 @@ def menu():
             instructions_button.clicked = False
         if load_game_button.clicked:
             load_game()
-            game.game()
             load_game_button.clicked = False
         if new_game_button.clicked:
             new_game()

@@ -20,14 +20,18 @@ class Button(pygame.Surface):
         self.curve = curve
         self.clicked = False
 
-    def draw(self, surface):
+    def draw(self, surface, pos=(0, 0)):
         """
         Draw button on screen
 
         :param surface: Surface to draw graphic onto
+        :param pos: Position of surface on the window (defaults to (0, 0) for the window itself)
         """
 
         mouse_x, mouse_y = pygame.mouse.get_pos()
+        mouse_x -= pos[0]
+        mouse_y -= pos[1]
+
         if self.x <= mouse_x <= self.x + self.width and self.y <= mouse_y <= self.y + self.height:
             self.clicked = False
             for button in pygame.mouse.get_pressed():
@@ -126,7 +130,7 @@ class Airplane:
         self.normal_size = 50
         self.grounded_size = 30
         self.path = []
-        self.last_movement = main.get_ticks()
+        self.last_movement = main.get_time()
         self.color = []
         self.grounded = False
         self.clicked = False
@@ -145,6 +149,7 @@ class Airplane:
         self.runway_size = None
         self.runway_revenue = None
         self.gate_revenue = None
+        self.penalty = None
 
         self.size_based_stats()
 
@@ -156,18 +161,19 @@ class Airplane:
             self.movement_interval = random.randint(25, 75)
             self.gate_time = random.randint(15000, 20000)
             self.runway_size = assets.LARGE_PLANE_RUNWAY
-            self.runway_revenue = 15000
+            self.runway_revenue = 50000
         elif self.image == assets.MEDIUM_PLANE:
             self.movement_interval = random.randint(100, 150)
             self.gate_time = random.randint(10000, 15000)
             self.runway_size = assets.MEDIUM_PLANE_RUNWAY
-            self.runway_revenue = 10000
+            self.runway_revenue = 25000
         else:
             self.movement_interval = random.randint(175, 225)
             self.gate_time = random.randint(5000, 10000)
             self.runway_size = assets.SMALL_PLANE_RUNWAY
-            self.runway_revenue = 5000
+            self.runway_revenue = 10000
         self.gate_revenue = self.runway_revenue * 2
+        self.penalty = self.gate_revenue * 2
 
     def draw(self, surface):
         """
@@ -176,80 +182,86 @@ class Airplane:
         :param surface: Surface to draw graphic onto
         """
 
-        time = main.get_ticks()
+        time = main.get_time()
+        thickness = 1 if self.grounded else 2
 
-        if self.path or (self.runway is None and not self.parked):
-            if len(self.path) >= 2:
-                pygame.draw.lines(surface, self.color, False, self.path, 1 if self.grounded else 2)
+        if not game.collision:
+            if self.path or (self.runway is None and not self.parked):
+                if len(self.path) >= 2:
+                    pygame.draw.lines(surface, self.color, False, self.path, thickness)
 
-            if not (
-                    -self.normal_size <= self.x <= surface.get_width() and -self.normal_size <= self.y <= surface.get_height()):
-                main.data[assets.AIRPLANES].remove(self)
-
-            if time - self.last_movement >= self.movement_interval and not self.clicked:
-                self.last_movement = time
-                if self.path:
-                    del self.path[0]
-                    if self.path:
-                        offset = (self.grounded_size if self.grounded else self.normal_size) / 2
-                        self.angle = math.atan2(self.y + offset - self.path[0][1], self.path[0][0] - self.x - offset)
-                        self.x = self.path[0][0] - offset
-                        self.y = self.path[0][1] - offset
-                elif not self.grounded:
-                    self.x += math.cos(self.angle) * 3
-                    self.y -= math.sin(self.angle) * 3
-        else:
-            self.grounded = True
-            self.movement_interval = 400
-            main.data[assets.AIRPLANES].insert(0,
-                                               main.data[assets.AIRPLANES].pop(main.data[assets.AIRPLANES].index(self)))
-
-            if self.runway_angle == 0 or self.runway_angle == 180:
-                self.y = self.runway.y + (self.runway.runway_width / 2) - (self.grounded_size / 2)
-            elif self.runway_angle == 90 or self.runway_angle == 270:
-                self.x = self.runway.x + (self.runway.runway_width / 2) - (self.grounded_size / 2)
-
-            try:
-                if time - self.last_movement >= self.movement_interval:
-                    if self.runway_angle == 0:
-                        assert self.x <= self.runway.x + self.runway.width - self.grounded_size
-                        self.x += 2
-                    elif self.runway_angle == 180:
-                        assert self.x >= self.runway.x
-                        self.x -= 2
-                    if self.runway_angle == 90:
-                        assert self.y >= self.runway.y
-                        self.y -= 2
-                    elif self.runway_angle == 270:
-                        assert self.y <= self.runway.y + self.runway.height - self.grounded_size
-                        self.y += 2
-            except AssertionError:
-                self.runway = None
-                main.data[assets.BALANCE] += self.runway_revenue
-                if self.at_gate is not None:
-                    self.grounded = False
-                    self.ready = False
-                    self.size_based_stats()
+                if not (
+                        -self.normal_size <= self.x <= surface.get_width() and -self.normal_size <= self.y <= surface.get_height()):
                     main.data[assets.AIRPLANES].remove(self)
-                    main.data[assets.AIRPLANES].append(self)
+                    if self.at_gate is None:
+                        main.data[assets.BALANCE] -= self.penalty
+                    else:
+                        main.data[assets.SCORE] += 1
 
-            if self.gate_number is not None:
-                if self.at_gate is None:
-                    self.at_gate = time
-                self.ready = time - self.at_gate >= self.gate_time
-                if self.ready:
-                    self.parked = False
-                    if not self.added_balance:
-                        main.data[assets.BALANCE] += self.gate_revenue
-                        self.added_balance = True
+                if time - self.last_movement >= self.movement_interval and not self.clicked:
+                    self.last_movement = time
+                    if self.path:
+                        del self.path[0]
+                        if self.path:
+                            offset = (self.grounded_size if self.grounded else self.normal_size) / 2
+                            self.angle = math.atan2(self.y + offset - self.path[0][1], self.path[0][0] - self.x - offset)
+                            self.x = self.path[0][0] - offset
+                            self.y = self.path[0][1] - offset
+                    elif not self.grounded:
+                        self.x += math.cos(self.angle) * 3
+                        self.y -= math.sin(self.angle) * 3
+            else:
+                self.grounded = True
+                self.movement_interval = 400
+                main.data[assets.AIRPLANES].insert(0,
+                                                   main.data[assets.AIRPLANES].pop(main.data[assets.AIRPLANES].index(self)))
 
-            if self.runway is not None:
-                self.angle = math.radians(self.runway_angle)
+                if self.runway_angle == 0 or self.runway_angle == 180:
+                    self.y = self.runway.y + (self.runway.runway_width / 2) - (self.grounded_size / 2)
+                elif self.runway_angle == 90 or self.runway_angle == 270:
+                    self.x = self.runway.x + (self.runway.runway_width / 2) - (self.grounded_size / 2)
 
-        if not self.path and self.gate and self.gate_number is not None:
-            self.x = game.gates[self.gate_number]
-            self.y = self.gate_y
-            self.angle = math.radians(self.gate_angle)
+                try:
+                    if time - self.last_movement >= self.movement_interval:
+                        if self.runway_angle == 0:
+                            assert self.x <= self.runway.x + self.runway.width - self.grounded_size
+                            self.x += 2
+                        elif self.runway_angle == 180:
+                            assert self.x >= self.runway.x
+                            self.x -= 2
+                        if self.runway_angle == 90:
+                            assert self.y >= self.runway.y
+                            self.y -= 2
+                        elif self.runway_angle == 270:
+                            assert self.y <= self.runway.y + self.runway.height - self.grounded_size
+                            self.y += 2
+                except AssertionError:
+                    self.runway = None
+                    main.data[assets.BALANCE] += self.runway_revenue
+                    if self.at_gate is not None:
+                        self.grounded = False
+                        self.ready = False
+                        self.size_based_stats()
+                        main.data[assets.AIRPLANES].remove(self)
+                        main.data[assets.AIRPLANES].append(self)
+
+                if self.gate_number is not None:
+                    if self.at_gate is None:
+                        self.at_gate = time
+                    self.ready = time - self.at_gate >= self.gate_time
+                    if self.ready:
+                        self.parked = False
+                        if not self.added_balance:
+                            main.data[assets.BALANCE] += self.gate_revenue
+                            self.added_balance = True
+
+                if self.runway is not None:
+                    self.angle = math.radians(self.runway_angle)
+
+            if not self.path and self.gate and self.gate_number is not None:
+                self.x = game.gates[self.gate_number]
+                self.y = self.gate_y
+                self.angle = math.radians(self.gate_angle)
 
         image = pygame.transform.rotate(
             pygame.transform.scale(pygame.image.fromstring(self.image, assets.PLANE_SIZE, 'RGBA'),
@@ -258,6 +270,8 @@ class Airplane:
         mask = pygame.Surface(image.get_size()).convert_alpha()
         mask.fill(self.color)
 
+        if game.hitboxes:
+            pygame.draw.rect(surface, assets.INFO_ERROR_COLOR, self.get_rect(), thickness)
         if self.ready:
             image.blit(mask, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
 
@@ -287,6 +301,6 @@ class Airplane:
             airplane.x = random.choice([0, main.SCREEN_WIDTH])
             airplane.y = random.randint(0, main.SCREEN_HEIGHT - airplane.normal_size)
 
-        airplane.angle = math.atan2(airplane.y - (main.SCREEN_HEIGHT / 2), (main.SCREEN_WIDTH / 2) - airplane.x)
+        airplane.angle = math.atan2(airplane.y - main.SCREEN_CENTER[1], main.SCREEN_CENTER[0] - airplane.x)
 
         main.data[assets.AIRPLANES].append(airplane)

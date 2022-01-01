@@ -64,12 +64,14 @@ def draw_airplanes():
     speeds, and needing different cool down times
     
     
-    Left click on an airplane to draw a path for it to follow. Keep in mind, different sizes of airplanes
-    will follow this path at different speeds. Right click while drawing a path to erase it
+    Left click and drag on an airplane to draw a path for it to follow. Keep in mind, different sizes of
+    airplanes will follow this path at different speeds. Right click while drawing a path to erase it
     
     
     An airplane must first be guided to land at a runway, then guided to a gate where it will stop for some
-    time, depending on its size, before needing to be guided to a runway to take off.
+    time, depending on its size, before needing to be guided to a runway to take off. If an airborne airplane
+    flies off the screen without landing, the revenue that can be earned from that plane is subtracted from the
+    balance
     
     
     Airplanes can only collide if they are at the same altitude (airborne or grounded). If one plane is airborne
@@ -87,9 +89,9 @@ def draw_airplanes():
         pygame.transform.scale(pygame.image.fromstring(assets.LARGE_PLANE, assets.PLANE_SIZE, 'RGBA'), (50, 50)),
         (925, 115))
 
-    main.WINDOW.blit(assets.AIRPLANE_PATH, (800, 210))
-    main.WINDOW.blit(assets.AIRPLANE_GATE, (850, 300))
-    main.WINDOW.blit(assets.AIRPLANE_ALTITUDES, (850, 400))
+    main.WINDOW.blit(assets.AIRPLANE_PATH, (800, 200))
+    main.WINDOW.blit(assets.AIRPLANE_GATE, (850, 310))
+    main.WINDOW.blit(assets.AIRPLANE_ALTITUDES, (850, 440))
 
 
 def draw_intro():
