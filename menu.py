@@ -37,7 +37,8 @@ def new_game():
         assets.TIMEOUT: 32000,
         assets.GAME_TIME: 0,
         assets.SCORE: 0,
-        assets.HIGH_SCORE: main.data[assets.HIGH_SCORE] if assets.HIGH_SCORE in main.data else 0
+        assets.HIGH_SCORE: main.data[assets.HIGH_SCORE] if assets.HIGH_SCORE in main.data else 0,
+        assets.GAME_OVER: False
     }
     game.game()
 

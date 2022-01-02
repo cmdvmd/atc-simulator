@@ -185,7 +185,7 @@ class Airplane:
         time = main.get_time()
         thickness = 1 if self.grounded else 2
 
-        if not game.collision:
+        if not main.data[assets.GAME_OVER]:
             if self.path or (self.runway is None and not self.parked):
                 if len(self.path) >= 2:
                     pygame.draw.lines(surface, self.color, False, self.path, thickness)
@@ -272,7 +272,7 @@ class Airplane:
 
         if game.hitboxes:
             pygame.draw.rect(surface, assets.INFO_ERROR_COLOR, self.get_rect(), thickness)
-        if self.ready:
+        if self.ready or self.color == assets.AIRPLANE_COLLISION_COLOR:
             image.blit(mask, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
 
         surface.blit(image, (self.x, self.y))

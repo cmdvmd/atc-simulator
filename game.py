@@ -12,7 +12,6 @@ def draw_popup():
     """
 
     global run
-    global collision
 
     popup = pygame.Surface((main.SCREEN_WIDTH / 2, main.SCREEN_HEIGHT / 2), pygame.SRCALPHA)
     popup_center_x = popup.get_width() / 2
@@ -59,9 +58,7 @@ def draw_popup():
                             close_button.y + (close_button.height / 2) - (close_text.get_height() / 2)))
 
     if close_button.clicked:
-        main.save_game()
-        run = False
-        collision = False
+        end_loop()
 
     main.WINDOW.blit(popup, popup_pos)
 
@@ -314,17 +311,16 @@ def draw_airplanes():
     Draw airplane graphics on screen
     """
 
-    global collision
-
     for airplane in main.data[assets.AIRPLANES]:
         airplane.draw(main.WINDOW)
         for other in main.data[assets.AIRPLANES]:
-            if not collision and other != airplane and airplane.grounded == other.grounded and airplane.get_rect().colliderect(
+            if not main.data[
+                assets.GAME_OVER] and other != airplane and airplane.grounded == other.grounded and airplane.get_rect().colliderect(
                     other.get_rect()):
-                collision = True
                 main.data[assets.GAME_TIME] = main.get_time()
-                airplane.color = assets.INFO_ERROR_COLOR
-                other.color = assets.INFO_ERROR_COLOR
+                main.data[assets.GAME_OVER] = True
+                airplane.color = assets.AIRPLANE_COLLISION_COLOR
+                other.color = assets.AIRPLANE_COLLISION_COLOR
                 other.draw(main.WINDOW)
 
 
@@ -338,6 +334,17 @@ def unclick_airplane():
     if clicked_airplane is not None:
         clicked_airplane.clicked = False
     clicked_airplane = None
+
+
+def end_loop():
+    global run
+
+    main.save_game()
+    main.game_start_time = 0
+    pygame.mouse.set_cursor(*pygame.cursors.arrow)
+    pygame.time.set_timer(assets.SPEED_GENERATION, 0)
+    pygame.time.set_timer(assets.GENERATE_AIRPLANE, 0)
+    run = False
 
 
 def game():
@@ -367,7 +374,7 @@ def game():
         draw_runways()
         draw_airplanes()
         draw_controls()
-        if collision:
+        if main.data[assets.GAME_OVER]:
             draw_popup()
 
         balance_text = assets.INFO_FONT.render(
@@ -431,11 +438,7 @@ def game():
             elif event.type == assets.GENERATE_AIRPLANE:
                 graphics.Airplane.generate_airplane()
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                main.save_game()
-                pygame.mouse.set_cursor(*pygame.cursors.arrow)
-                pygame.time.set_timer(assets.SPEED_GENERATION, 0)
-                pygame.time.set_timer(assets.GENERATE_AIRPLANE, 0)
-                run = False
+                end_loop()
 
         pygame.display.flip()
 
@@ -447,5 +450,4 @@ hitboxes = False
 pressed = False
 original_click = None
 clicked_airplane = None
-collision = False
 gates = {}

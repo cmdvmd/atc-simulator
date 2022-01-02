@@ -11,7 +11,8 @@ def get_time():
     Get time (in milliseconds) elapsed since start of game
     """
 
-    return (time.time_ns() / 1000000) - (game_start_time / 1000000) + data[assets.GAME_TIME]
+    return (((time.time_ns() / 1000000) - (game_start_time / 1000000)) if not data[assets.GAME_OVER] else 0) + data[
+        assets.GAME_TIME]
 
 
 def save_game():
