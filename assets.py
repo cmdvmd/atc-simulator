@@ -1,6 +1,8 @@
 import pygame
 import os
 
+TITLE = 'ATC Simulator'
+
 #
 # Images
 #
@@ -76,8 +78,9 @@ LARGE_PLANE_RUNWAY = 23000
 # Events
 #
 
-GENERATE_AIRPLANE = pygame.USEREVENT
+INITIAL_GENERATION = pygame.USEREVENT
 SPEED_GENERATION = pygame.USEREVENT + 1
+GENERATE_AIRPLANE = pygame.USEREVENT + 2
 
 #
 # Data keys

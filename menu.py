@@ -56,7 +56,7 @@ def menu():
         # Draw graphics on screen
         main.WINDOW.fill(assets.MENU_COLOR)
 
-        title = assets.TITLE_FONT.render('Air Traffic Controller Simulator', True, assets.MENU_TITLE_COLOR)
+        title = assets.TITLE_FONT.render(assets.TITLE, True, assets.MENU_TITLE_COLOR)
         main.WINDOW.blit(title, ((main.SCREEN_WIDTH / 2) - (title.get_width() / 2), 10))
         main.WINDOW.blit(assets.MENU_IMAGE, (550, 75))
 

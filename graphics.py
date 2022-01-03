@@ -175,6 +175,17 @@ class Airplane:
         self.gate_revenue = self.runway_revenue * 2
         self.penalty = self.gate_revenue * 2
 
+    def position_on_runway(self):
+        """
+        Position airplane in the middle of the runway
+        """
+
+        size = (self.grounded_size if self.grounded else self.normal_size) / 2
+        if self.runway_angle == 0 or self.runway_angle == 180:
+            self.y = self.runway.y + (self.runway.runway_width / 2) - size
+        elif self.runway_angle == 90 or self.runway_angle == 270:
+            self.x = self.runway.x + (self.runway.runway_width / 2) - size
+
     def draw(self, surface):
         """
         Draw airplane on screen
@@ -216,10 +227,7 @@ class Airplane:
                 main.data[assets.AIRPLANES].insert(0,
                                                    main.data[assets.AIRPLANES].pop(main.data[assets.AIRPLANES].index(self)))
 
-                if self.runway_angle == 0 or self.runway_angle == 180:
-                    self.y = self.runway.y + (self.runway.runway_width / 2) - (self.grounded_size / 2)
-                elif self.runway_angle == 90 or self.runway_angle == 270:
-                    self.x = self.runway.x + (self.runway.runway_width / 2) - (self.grounded_size / 2)
+                self.position_on_runway()
 
                 try:
                     if time - self.last_movement >= self.movement_interval:
@@ -236,14 +244,15 @@ class Airplane:
                             assert self.y <= self.runway.y + self.runway.height - self.grounded_size
                             self.y += 2
                 except AssertionError:
-                    self.runway = None
-                    main.data[assets.BALANCE] += self.runway_revenue
                     if self.at_gate is not None:
                         self.grounded = False
                         self.ready = False
                         self.size_based_stats()
+                        self.position_on_runway()
                         main.data[assets.AIRPLANES].remove(self)
                         main.data[assets.AIRPLANES].append(self)
+                    self.runway = None
+                    main.data[assets.BALANCE] += self.runway_revenue
 
                 if self.gate_number is not None:
                     if self.at_gate is None:

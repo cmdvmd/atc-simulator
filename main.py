@@ -55,7 +55,7 @@ if __name__ == '__main__':
     pygame.init()
     pygame.font.init()
 
-    pygame.display.set_caption('ATC Simulator')
+    pygame.display.set_caption(assets.TITLE)
     pygame.display.set_icon(assets.ICON)
 
     pygame.mouse.set_cursor(*pygame.cursors.arrow)

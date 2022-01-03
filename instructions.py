@@ -103,7 +103,7 @@ def draw_intro():
     draw_text('''
     The goal of this game is to guide airplanes to land, park, and take off safely
     
-    At the beginning of a new game, players have 30 seconds to prepare. During this
+    At the beginning of a new game, players have 15 seconds to prepare. During this
     time (and throughout the rest of the game), players can:
     
     1. Draw runways for planes to take off and land on
